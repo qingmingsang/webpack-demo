@@ -1,0 +1,11 @@
+.root {
+	/*导入layout文件里的box类*/
+  composes: box from "./layout.css";
+  border-color: red;
+}
+
+.text {
+	/*导入typography文件里的heading类*/
+  composes: heading from "./typography.css";
+  color: red;
+}

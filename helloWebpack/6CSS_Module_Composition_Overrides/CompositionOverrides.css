@@ -1,0 +1,15 @@
+.root {
+	/*引入文件里的样式会覆盖被引入文件的样式,类似继承.与样式位置无关*/
+	/*border-style: dotted;*/
+	composes: box from "./layout.css";
+	border-style: dotted;
+	border-color: green;
+}
+
+.text {
+	/*引入文件里的样式会覆盖被引入文件的样式,类似继承.与样式位置无关*/
+	/*font-weight: 200;*/
+	composes: heading from "./typography.css";
+	font-weight: 200;
+	color: green;
+}

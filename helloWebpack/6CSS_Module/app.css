@@ -1,0 +1,9 @@
+/*默认值渲染JSX*/
+/*只会渲染JSX部分*/
+.h1 {
+  color:red;
+}
+/*全部渲染,包括HTML,引入的方式也略有差别*/
+:global(.h2) {
+  color: blue;
+}

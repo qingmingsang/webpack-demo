@@ -1,0 +1,73 @@
+npm install webpack -g
+
+npm install webpack --save-dev
+npm i webpack --save-dev //也可以这么写，i是install的简写
+
+A prettier output：
+webpack --progress --colors
+
+Watch mode：
+webpack --progress --colors --watch
+
+
+npm install react --save-dev
+npm install react-dom --save-dev
+
+npm install babel-preset-react --save-dev
+npm install babel-core --save-dev
+npm install babel-loader --save-dev
+npm install babel-preset-es2015 --save-dev  //es6
+npm i babel-core babel-loader babel-preset-es2015 babel-preset-react --save-dev
+
+
+npm i css-loader style-loader --save-dev  //加载CSS文件
+npm i file-loader url-loader --save-dev  //加载图片
+
+npm i html-webpack-plugin --save-dev  //创建HTML文件插件
+npm i open-browser-webpack-plugin --save-dev  //编译后创建本地服务器，然后自动在浏览器打开HTML插件。这个插件感觉没卵用
+
+npm i bundle-loader --save-dev //单独打包?
+
+npm i jquery --save-dev  //jq
+
+npm install webpack-dev-server -g    //这里老是出错，但是不装貌似又不行
+npm install webpack-dev-server  --save-dev
+
+webpack-dev-server  //虚拟运行。热编译JS部分
+webpack   //实际打包
+http://localhost:8080/webpack-dev-server
+
+两种方式 Hot Module Replacement
+①运行命令
+webpack-dev-server --hot --inline 
+②config 里 配置 entry等
+
+npm i react-router --save-dev  //安装react-router
+
+npm install webpack react react-dom babel-core babel-preset-react babel-loader babel-preset-es2015 --save-dev
+npm install webpack webpack-dev-server react react-dom babel-core babel-preset-react babel-loader babel-preset-es2015 --save-dev
+
+webpack-dev-server --progress --colors
+
+echo { "presets": ["react"] } > .babelrc
+
+or in package.json
+  "babel": {
+	"presets": ["react"]
+  }
+
+  
+  webpack.config.js
+module.exports = {
+    entry: "./main.js",
+    output: {
+        path: __dirname,
+        filename: "bundle.js"
+    },
+    module: {
+        loaders: [
+			
+            {test: /\.js$/, loader: "babel"}
+        ]
+    }
+};

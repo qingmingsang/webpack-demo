@@ -1,0 +1,12 @@
+.root {
+  padding: 20px 10px;
+}
+
+.ball {
+	/*甚至能引入动画动作带keyframes*/
+  composes: bounce from "./animations.css";
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  background: rebeccapurple;
+}
