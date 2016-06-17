@@ -4,10 +4,10 @@ npm install css-loader style-loader --save-dev
 
 webpack
 
-A prettier output£º
+A prettier output:
 webpack --progress --colors
 
-Watch mode£º
+Watch mode:
 webpack --progress --colors --watch
 
 Development server:
