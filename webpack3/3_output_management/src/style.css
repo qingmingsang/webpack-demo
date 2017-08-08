@@ -1,0 +1,15 @@
+div{
+    width: 100px;
+    height: 100px;
+    background: lightblue;
+}
+p {
+    width: 100px;
+    height: 100px;
+    background: lightcoral;
+}
+section{
+    width:200px;
+    height:200px;
+    background: lightgreen;
+}

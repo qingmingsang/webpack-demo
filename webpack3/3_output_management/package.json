@@ -1,0 +1,21 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack --colors"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "clean-webpack-plugin": "^0.1.16",
+    "css-loader": "^0.28.4",
+    "file-loader": "^0.11.2",
+    "html-webpack-plugin": "^2.28.0",
+    "style-loader": "^0.18.2",
+    "webpack": "^3.3.0"
+  },
+  "dependencies": {}
+}
