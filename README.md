@@ -1,6 +1,6 @@
 # webpack3 快速施法
 
-[完整示例](http://git.dev.sh.ctripcorp.com/ccfu/webpack-getting-started/tree/master)
+[完整示例](https://github.com/qingmingsang/helloWebpack/tree/master/webpack3)
 可查看对应的例子，`npm start`运行。
 
 ## 1.安装
