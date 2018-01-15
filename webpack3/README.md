@@ -143,7 +143,8 @@ module.exports = {
 ```
 
 ### 高级方式
-用`webpack-merge`合并公共的webpack配置文件，个人感觉`webpack-merge`不是必须的，可以按照手动的方式，然后提取公共的思路自己创建一种手动高级方式！(听着就觉得很高级)
+用`webpack-merge`合并公共的webpack配置文件。
+示例为高级方式。
 
 
 

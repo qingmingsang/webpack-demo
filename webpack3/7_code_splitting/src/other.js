@@ -1,11 +1,5 @@
-import './style.css';
-import Library from './library';
+import _ from 'lodash';
 
-function component() {
-    var element = document.createElement('section');
-    element.innerHTML = `另一个文件`;
-    Library.log();
-    return element;
-}
-
-document.body.appendChild(component());
+console.log(
+  _.join(['Another', 'module', 'loaded!'], ' ')
+);

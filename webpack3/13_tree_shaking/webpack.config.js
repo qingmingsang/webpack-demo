@@ -1,18 +1,14 @@
 const path = require('path');
-const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const publicPath = './';
+const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
 module.exports = {
   entry: {
-    index: './src/index.js',
-    other: './src/other.js'
+    app: './src/index.js'
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: '[name].[hash].js',
-    publicPath: publicPath,
-    sourceMapFilename: '[name].map'
+    filename: '[name].bundle.js'
   },
   module: {
     rules: [
@@ -38,20 +34,14 @@ module.exports = {
     ]
   },
   plugins: [
-    new webpack.HotModuleReplacementPlugin(), // 开启HMR
     new HtmlWebpackPlugin({
       title: 'Output Management',
       favicon: './favicon.ico'
     }),
-    //开启后会把公共的chunk打到commonjs
-    new webpack.optimize.CommonsChunkPlugin({
-      name: 'common' // 指定公共 bundle 的名称。
-    })
+    new UglifyJSPlugin()//  --optimize-minimize似乎是默认执行的
   ],
   devServer: {
-    hot: true, // 告知 dev-server 正在使用 HMR
-    contentBase: path.resolve(__dirname, 'dist'),
-    publicPath: publicPath
+    contentBase: './dist'
   },
-  devtool: 'cheap-module-source-map'
+  devtool: "inline-source-map"
 };
