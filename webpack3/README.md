@@ -46,7 +46,7 @@ Webpack有几个不同的方式更改代码时自动编译代码：
 ```
 webpack's Watch Mode
 webpack-dev-server //相当于一个本地服务+webpack-dev-middleware
-//webpack-dev-middleware
+//webpack-dev-middleware  //需要额外启动server
 ```
 
 ### watch模式
@@ -92,7 +92,7 @@ module.exports = {
 ```
 webpack -p
 
-或等效
+等效
 
 webpack --optimize-minimize --define process.env.NODE_ENV="'production'"
 ```
