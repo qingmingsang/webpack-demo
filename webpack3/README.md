@@ -168,9 +168,16 @@ Dynamic Imports: 通过模块内部函数调用分割代码。
 
 
 ## 8.高速缓存
+[hash] 替换可以用于在文件名中包含一个构建相关(build-specific)的 hash，
 可以给所有打包出来的budle加上[hash]名，使文件能不被缓存。
-但是坏处是一个文件改动会让所有bundle都变化hash名。
-可以使用[chunkhash]给每个bundle hash。
+但是因为 webpack 在入口 chunk 中，包含了某些样板(boilerplate)，特别是 runtime 和 manifest，
+导致甚至什么没改也可能会改变hash。
+可以利用CommonsChunkPlugin来解决这个问题。
+新版本中已经解决了这个问题。
+
+如果只是为了hash不在没改动的情况下改变，可以使用 [chunkhash] 替换，
+在文件名中包含一个 chunk 相关(chunk-specific)的哈希。
+
 
 
 

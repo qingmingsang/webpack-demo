@@ -11,13 +11,13 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 function component() {
   var element = document.createElement('div');
+
   element.innerHTML = __WEBPACK_IMPORTED_MODULE_0_lodash___default.a.join(['Hello', 'webpack'], ' ');
+
   return element;
 }
 
 document.body.appendChild(component());
 
-
 /***/ })
 ],[1]);
-//# sourceMappingURL=index.map
