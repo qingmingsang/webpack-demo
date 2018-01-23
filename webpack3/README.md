@@ -188,6 +188,8 @@ Dynamic Imports: 通过模块内部函数调用分割代码。
 - vendor bundle 会随着自身的 module.id 的修改，而发生变化。
 - runtime bundle 会因为当前包含一个新模块的引用，而发生变化。
 
+NamedModulesPlugin，将使用模块的路径，而不是数字标识符
+
 
 
 
