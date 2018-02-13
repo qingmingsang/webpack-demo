@@ -224,23 +224,6 @@ npm i babel-preset-env babel-preset-react -D
 ```
 
 
-## more and more
-
-shim 是一个库(library)，它将一个新的 API 引入到一个旧的环境中，而且仅靠旧的环境中已有的手段实现。polyfill 就是一个用在浏览器 API 上的 shim。我们通常的做法是先检查当前浏览器是否支持某个 API，如果不支持的话就加载对应的 polyfill。然后新旧浏览器就都可以使用这个 API 了。 
-
-可以通过ProvidePlugin将常规的模块注入到全局中。
-可以通过imports-loader改变全局变量。
-可通过exports-loader将某个不是模块的js文件export到全局？
-可通过entry将某些需要全局import的文件全局引入。
-
-需要注意的是不同的 devtool 的设置，会导致不同的性能差异。
-- "eval" 具有最好的性能，但并不能帮助你转译代码。
-- 如果你能接受稍差一些的 mapping 质量，可以使用 cheap-source-map 选项来提高性能
-- 使用 eval-source-map 配置进行增量编译。
-- 在大多数情况下，cheap-module-eval-source-map 是最好的选择。
-
-
-
 
 
 

@@ -245,3 +245,68 @@ npm i babel-preset-env babel-preset-react -D
 ```
 
 
+## more and more
+
+shim 是一个库(library)，它将一个新的 API 引入到一个旧的环境中，而且仅靠旧的环境中已有的手段实现。polyfill 就是一个用在浏览器 API 上的 shim。我们通常的做法是先检查当前浏览器是否支持某个 API，如果不支持的话就加载对应的 polyfill。然后新旧浏览器就都可以使用这个 API 了。 
+
+可以通过ProvidePlugin将常规的模块注入到全局中。
+可以通过imports-loader改变全局变量。
+可通过exports-loader将某个不是模块的js文件export到全局？
+可通过entry将某些需要全局import的文件全局引入。
+
+需要注意的是不同的 devtool 的设置，会导致不同的性能差异。
+- "eval" 具有最好的性能，但并不能帮助你转译代码。
+- 如果你能接受稍差一些的 mapping 质量，可以使用 cheap-source-map 选项来提高性能
+- 使用 eval-source-map 配置进行增量编译。
+- 在大多数情况下，cheap-module-eval-source-map 是最好的选择。
+
+webpack 提供一个全局变量`__webpack_public_path__`
+可以用来设置Public Path
+
+entry可以设置多入口，可以通过entry导入全局变量。
+
+```
+filename: "bundle.js", // string
+filename: "[name].js", // 用于多个入口点(entry point)（出口点？）
+filename: "[chunkhash].js", // 用于长效缓存
+
+publicPath: "/assets/", // string
+publicPath: "",
+publicPath: "https://cdn.example.com/",//可以通过publicPath设置cdn
+// 输出解析文件的目录，url 相对于 HTML 页面
+
+devtool: "source-map", // enum
+devtool: "inline-source-map", // 嵌入到源文件中
+devtool: "eval-source-map", // 将 SourceMap 嵌入到每个模块中
+devtool: "hidden-source-map", // SourceMap 不在源文件中引用
+devtool: "cheap-source-map", // 没有模块映射(module mappings)的 SourceMap 低级变体(cheap-variant)
+devtool: "cheap-module-source-map", // 有模块映射(module mappings)的 SourceMap 低级变体
+devtool: "eval", // 没有模块映射，而是命名模块。以牺牲细节达到最快。
+// 通过在浏览器调试工具(browser devtools)中添加元信息(meta info)增强调试
+// 牺牲了构建速度的 `source-map' 是最详细的。
+
+
+devServer: {
+  proxy: { // proxy URLs to backend development server
+    '/api': 'http://localhost:3000'
+  },
+  contentBase: path.join(__dirname, 'public'), // boolean | string | array, static file location
+  compress: true, // enable gzip compression
+  historyApiFallback: true, // true for index.html upon 404, object for multiple paths
+  hot: true, // hot module replacement. Depends on HotModuleReplacementPlugin
+  https: false, // true for self-signed, object for cert authority
+  noInfo: true, // only errors & warns on hot reload
+  // ...
+},
+```
+
+module.noParse 不编译某些文件
+
+
+
+
+
+
+
+
+
