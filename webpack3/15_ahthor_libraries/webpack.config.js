@@ -8,7 +8,7 @@ module.exports = {
     library: 'webpackNumbers',
     libraryTarget: 'umd'
   },
-  //加这个就不会将lodash主动打包了，而是依赖装了webpack-numbers人的lodash
+  //加这个就不会将lodash主动打包了，而是依赖装了webpack-numbers的用户的lodash
   externals: {
     lodash: {
       commonjs: 'lodash',

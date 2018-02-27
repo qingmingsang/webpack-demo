@@ -41,6 +41,7 @@ module.exports = {
       favicon: './favicon.ico'
     })
   ],
+  //如果不用webpack-dev-server，需要配置这个
   devServer: {
     contentBase: './dist'
   },

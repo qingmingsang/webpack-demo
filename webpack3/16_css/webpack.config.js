@@ -4,6 +4,9 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const poststylus = require('poststylus');
+const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+
+let autoprefixerConfig = { browsers: 'last 10 versions' };
 
 module.exports = {
   entry: {
@@ -21,8 +24,19 @@ module.exports = {
         use: ExtractTextPlugin.extract({
           fallback: 'style-loader',
           use: [
-            'css-loader',
-            'stylus-loader'
+            {
+              loader: 'css-loader',
+              options: {
+                minimize: true,
+                //sourceMap: true
+              }
+            },
+            {
+              loader: 'stylus-loader',
+              options: {
+                use: [poststylus([require('autoprefixer')(autoprefixerConfig)])]
+              }
+            }
           ]
         })
       },
@@ -32,8 +46,22 @@ module.exports = {
         use: ExtractTextPlugin.extract({
           fallback: 'style-loader',
           use: [
-            'css-loader',
-            'postcss-loader'
+            {
+              loader: 'css-loader',
+              options: {
+                minimize: true,
+                //sourceMap: true
+              }
+            },
+            {
+              loader: 'postcss-loader',
+              options: {
+                ident: 'postcss',
+                plugins: [
+                  require('autoprefixer')(autoprefixerConfig)
+                ]
+              }
+            }
           ]
         })
       }
@@ -46,17 +74,10 @@ module.exports = {
       template: path.resolve(__dirname, 'template.html')
     }),
     new ExtractTextPlugin({
-      filename: '../destination/app.css'//dist的相对路径，貌似不能用path
+      filename: '../destination/app.css'//dist的相对路径，基准可能是output
     }),
-    new webpack.LoaderOptionsPlugin({
-      debug: true,
-      stylus: {
-        default: {
-          use: [poststylus([require('autoprefixer')({ browsers: 'last 10 versions' })])]
-        }
-      }
-    }),
-    new CleanWebpackPlugin(['dist'])
+    new CleanWebpackPlugin(['dist']),
+    new UglifyJSPlugin()
   ],
   resolve: {
     extensions: ['.js', '.jsx', '.styl']
