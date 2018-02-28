@@ -19,7 +19,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /.styl$/,
+        test: /\.styl$/,
         exclude: /node_modules/,
         use: ExtractTextPlugin.extract({
           fallback: 'style-loader',
@@ -28,6 +28,8 @@ module.exports = {
               loader: 'css-loader',
               options: {
                 minimize: true,
+                //modules: true,
+                //localIdentName: '[path][name]__[local]--[hash:base64:5]',
                 //sourceMap: true
               }
             },
@@ -41,7 +43,7 @@ module.exports = {
         })
       },
       {
-        test: /.css$/,
+        test: /\.css$/,
         exclude: /node_modules/,
         use: ExtractTextPlugin.extract({
           fallback: 'style-loader',
@@ -51,6 +53,8 @@ module.exports = {
               options: {
                 minimize: true,
                 //sourceMap: true
+                //modules: true,
+                //localIdentName: '[path][name]__[local]--[hash:base64:5]',
               }
             },
             {
@@ -74,7 +78,7 @@ module.exports = {
       template: path.resolve(__dirname, 'template.html')
     }),
     new ExtractTextPlugin({
-      filename: '../destination/app.css'//dist的相对路径，基准可能是output
+      filename: '../destination/[name].[contenthash:8].css'//dist的相对路径，基准可能是output
     }),
     new CleanWebpackPlugin(['dist']),
     new UglifyJSPlugin()

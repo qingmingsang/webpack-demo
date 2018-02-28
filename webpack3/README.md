@@ -22,6 +22,9 @@ npm install --save-dev css-loader style-loader//用于加载css文件
 npm install --save-dev file-loader//用于加载图片与字体文件
 //npm install --save-dev csv-loader xml-loader //不太用的上
 ```
+可以使用url-loader，将某个limit(byte)内的文件转为Data URL，特别是对图片。
+1B（byte，字节）= 8 bit
+1KB = 1024B
 
 
 ## 3.输出管理
