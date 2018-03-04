@@ -176,6 +176,8 @@ Dynamic Imports: 通过模块内部函数调用分割代码。
 
 import() 调用会在内部用到 promises。如果在旧有版本浏览器中使用 import()，记得使用 一个 polyfill 库（例如 es6-promise 或 promise-polyfill），来 shim Promise。 
 
+如果使用了Babel，将需要添加 syntax-dynamic-import 插件，才能使 Babel 可以正确地解析语法。
+
 
 
 ## 8.缓存
