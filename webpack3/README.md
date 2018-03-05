@@ -286,6 +286,10 @@ webpack 2 内置支持 ES2015 模块（别名 harmony modules），并能检测�
 懒加载或者按需加载，是一种很好的优化网页或应用的方式。这种方式实际上是先把你的代码在一些逻辑断点处分离开，然后在一些代码块中完成某些操作后，立即引用或即将引用另外一些新的代码块。这样加快了应用的初始加载速度，减轻了它的总体体积，因为某些代码块可能永远不会被加载。
 
 一般和代码分割是关联的。
+## 16 css
+如果使用了ExtractTextPlugin，则sourceMap失效。
+如果其他css相关的loader使用了sourceMap，而且使用了postcss-loader，
+则[postcss-loader](https://github.com/postcss/postcss-loader)必须也开启sourceMap;
 
 ## 17 shimming
 

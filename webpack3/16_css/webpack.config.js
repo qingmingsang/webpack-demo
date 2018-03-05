@@ -6,7 +6,8 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const poststylus = require('poststylus');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
-let autoprefixerConfig = { browsers: 'last 10 versions' };
+//const postcssConfig = require('./postcss.config.js');
+//const autoprefixerConfig = postcssConfig.postcssConfig;
 
 module.exports = {
   entry: {
@@ -27,18 +28,21 @@ module.exports = {
             {
               loader: 'css-loader',
               options: {
-                minimize: true,
-                //modules: true,
-                //localIdentName: '[path][name]__[local]--[hash:base64:5]',
+                //minimize: true,
+                modules: true,
+                localIdentName: '[path][name]__[local]--[hash:base64:5]',
                 //sourceMap: true
               }
             },
-            {
-              loader: 'stylus-loader',
-              options: {
-                use: [poststylus([require('autoprefixer')(autoprefixerConfig)])]
-              }
-            }
+            'postcss-loader',
+            'stylus-loader'
+            // {
+            //   loader: 'stylus-loader',
+            //   options: {
+            //     //use: [poststylus]
+            //     //use: [poststylus([require('autoprefixer')(autoprefixerConfig)])]
+            //   }
+            // }
           ]
         })
       },
@@ -51,21 +55,22 @@ module.exports = {
             {
               loader: 'css-loader',
               options: {
-                minimize: true,
-                //sourceMap: true
-                //modules: true,
-                //localIdentName: '[path][name]__[local]--[hash:base64:5]',
+                //minimize: true,
+                //sourceMap: true,
+                modules: true,
+                localIdentName: '[path][name]__[local]--[hash:base64:5]',
               }
             },
-            {
-              loader: 'postcss-loader',
-              options: {
-                ident: 'postcss',
-                plugins: [
-                  require('autoprefixer')(autoprefixerConfig)
-                ]
-              }
-            }
+            'postcss-loader'
+            // {
+            //   loader: 'postcss-loader',
+            //   options: {
+            //     ident: 'postcss',
+            //     plugins: [
+            //       require('autoprefixer')(autoprefixerConfig)
+            //     ]
+            //   }
+            // }
           ]
         })
       }
@@ -77,8 +82,11 @@ module.exports = {
       inject: 'body',
       template: path.resolve(__dirname, 'template.html')
     }),
+    // new ExtractTextPlugin({
+    //   filename: '../destination/[name].[contenthash:8].css'//dist的相对路径，基准可能是output
+    // }),
     new ExtractTextPlugin({
-      filename: '../destination/[name].[contenthash:8].css'//dist的相对路径，基准可能是output
+      filename: '[name].[contenthash:8].css'//dist的相对路径，基准可能是output
     }),
     new CleanWebpackPlugin(['dist']),
     new UglifyJSPlugin()
