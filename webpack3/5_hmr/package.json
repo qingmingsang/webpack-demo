@@ -7,7 +7,8 @@
     "build": "webpack --colors --config webpack.config.js",
     "watch": "webpack --progress --watch",
     "start": "webpack-dev-server --open",
-    "server": "node server.js"
+    "server": "node server.js",
+    "mock": "node mockserver.js"
   },
   "keywords": [],
   "author": "",
@@ -16,10 +17,13 @@
     "clean-webpack-plugin": "^0.1.17",
     "css-loader": "^0.28.4",
     "file-loader": "^0.11.2",
+    "friendly-errors-webpack-plugin": "^1.6.1",
     "html-webpack-plugin": "^2.30.1",
     "style-loader": "^0.18.2",
     "webpack": "^3.10.0",
     "webpack-dev-server": "^2.11.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "express": "^4.16.2"
+  }
 }

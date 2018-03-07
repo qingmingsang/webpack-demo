@@ -30,3 +30,47 @@ if (module.hot) {
 }
 //[HMR] Updated modules:
 //[HMR]  - ./src/library.js
+
+let btn1 = document.createElement('button');
+btn1.innerHTML = 'request a';
+let btn2 = document.createElement('button');
+btn2.innerHTML = 'request b';
+let btn3 = document.createElement('button');
+btn3.innerHTML = 'request api';
+document.body.appendChild(btn1);
+document.body.appendChild(btn2);
+document.body.appendChild(btn3);
+
+btn1.addEventListener('click', () => {
+  console.log('a')
+  fetch('/api/a').then(function (response) {
+    console.log(response)
+    return response.text();
+  }).then(function (data) {
+    console.log(data);
+  }).catch(function (e) {
+    console.log(e);
+  });
+})
+btn2.addEventListener('click', () => {
+  console.log('b')
+  fetch('/api/b').then(function (response) {
+    console.log(response)
+    return response.text();
+  }).then(function (data) {
+    console.log(data);
+  }).catch(function (e) {
+    console.log(e);
+  });
+})
+btn3.addEventListener('click', () => {
+  console.log('c')
+  fetch('/api').then(function (response) {
+    console.log(response)
+    return response.text();
+  }).then(function (data) {
+    console.log(data);
+  }).catch(function (e) {
+    console.log(e);
+  });
+})
