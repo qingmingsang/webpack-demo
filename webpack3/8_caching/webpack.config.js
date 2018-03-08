@@ -2,15 +2,18 @@ const path = require('path');
 const webpack = require('webpack');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 module.exports = {
   entry: {
     main: './src/index.js',
-    vendor: [
-      'lodash'
-    ]
+    // vendor: [
+    //   'lodash'
+    // ]
   },
   plugins: [
+    //new webpack.NamedModulesPlugin(),//以便更容易查看要修补(patch)的依赖
+    //new webpack.HotModuleReplacementPlugin(), // 开启HMR
     new CleanWebpackPlugin(['dist']),
     new HtmlWebpackPlugin({
       title: 'Caching'
@@ -22,16 +25,29 @@ module.exports = {
     //必须在 'runtime' 实例之前引入。 
     //将第三方库(library)（例如 lodash 或 react）提取到单独的 vendor chunk 文件中
     new webpack.optimize.CommonsChunkPlugin({
-      name: 'vendor'
+      name: "vendor",
+      minChunks: (module) => {
+        return module.context && module.context.includes("node_modules");
+      }
     }),
     //CommonsChunkPlugin能够在每次修改后的构建结果中，
     //将 webpack 的样板(boilerplate)和 manifest 提取出来
     new webpack.optimize.CommonsChunkPlugin({
-      name: 'runtime'
-    })
+      name: 'manifest',
+      minChunks: Infinity
+    }),
+    new BundleAnalyzerPlugin({
+      analyzerMode: 'static',
+      openAnalyzer: false,
+      reportFilename: 'BundleAnalyzer.report.html'
+    }),
   ],
   output: {
-    filename: '[name].[chunkhash].js',
+    //filename: '[name].[hash:8].js',
+    filename: '[name].[chunkhash:8].js',
     path: path.resolve(__dirname, 'dist')
-  }
+  },
+  // devServer: {
+  //   hot: true, // 告知 dev-server 正在使用 HMR
+  // }
 };

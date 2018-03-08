@@ -12,9 +12,9 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: '[name].[hash].js',
-    publicPath: publicPath,
-    sourceMapFilename: '[name].map'
+    filename: '[name].bundle.js',
+    //publicPath: publicPath,
+    //sourceMapFilename: '[name].map'
   },
   module: {
     rules: [
@@ -49,13 +49,13 @@ module.exports = {
     new webpack.optimize.CommonsChunkPlugin({
       name: 'common' // 指定公共 bundle 的名称。
     }),
-    new UglifyJSPlugin(),//生产环境必须要开一个压缩工具
-    new BundleAnalyzerPlugin()//一般情况只在生产配置里用它
+    //new UglifyJSPlugin(),//生产环境必须要开一个压缩工具
+    //new BundleAnalyzerPlugin()//一般情况只在生产配置里用它
   ],
   devServer: {
     hot: true, // 告知 dev-server 正在使用 HMR
-    contentBase: path.resolve(__dirname, 'dist'),
-    publicPath: publicPath
+    //contentBase: path.resolve(__dirname, 'dist'),
+    //publicPath: publicPath
   },
-  devtool: 'cheap-module-source-map'
+  //devtool: 'cheap-module-source-map'
 };
