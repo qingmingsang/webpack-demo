@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    <title>
+      <%= htmlWebpackPlugin.options.title %>
+    </title>
+    <script>
+      //竟然还有一个babel-plugin-transform-runtime、、、、
+      //算了直接用babel-polyfill吧
+      var modernBrowser = (
+        'fetch' in window &&
+        'assign' in Object &&
+        typeof Promise != 'undefined'
+      );
+
+      if (!modernBrowser) {
+        var scriptElement = document.createElement('script');
+
+        scriptElement.async = false;
+        scriptElement.src = './polyfills.bundle.js';
+        document.head.appendChild(scriptElement);
+      }
+    </script>
+  </head>
+
+  <body>
+    <div id="app"></div>
+  </body>
+
+</html>
