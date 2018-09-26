@@ -1,5 +1,5 @@
 # webpack4 changelog
-翻译webpack4的主要功能变更,bugfixes之类的如果不重要会略过
+翻译[webpack4](https://github.com/webpack/webpack/releases)的主要功能变更,bugfixes之类的如果不重要会略过
 
 # V4.0.0
 

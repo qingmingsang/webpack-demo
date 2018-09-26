@@ -1,140 +1,520 @@
-该文章目前对应的是 webpack 4.12.1
-[v4.0.0 changelog](https://github.com/webpack/webpack/releases/tag/v4.0.0)
+# 拓展阅读
+[Module Methods](https://webpack.js.org/api/module-methods/)
+[Writing a Loader](https://webpack.js.org/contribute/writing-a-loader/)
+[tapable](https://github.com/webpack/tapable)
+[Modular_programming](https://en.wikipedia.org/wiki/Modular_programming)
+[commonjs](http://www.commonjs.org/specs/modules/1.0/)
+[AMD](https://github.com/amdjs/amdjs-api/blob/master/AMD.md)
+[webpack-http-2](https://medium.com/webpack/webpack-http-2-7083ec3f3ce6#.7y5d3hz59)
 
-## 新增webpack-cli
-需要多安装一个[webpack-cli](https://github.com/webpack/webpack-cli).
-现在可以不需要webpack.config.js文件也能简单打包文件,
-会默认打包`./src/index.js`,
-输出到`./dist/main.js`中.
+# concepts 概念
+## entry
+入口起点(entry point)指示 webpack 应该使用哪个模块，来作为构建其内部依赖图的开始，webpack 会找出有哪些模块和 library 是入口起点（直接和间接）依赖的。
 
-相当于默认载入了这个配置
+默认值是 `./src/index.js`，然而，可以通过在 webpack 配置中配置 entry 属性，来指定一个不同的入口起点（或者也可以指定多个入口起点）。
+```
+module.exports = {
+  entry: './path/to/my/entry/file.js'
+};
+```
+
+## output
+output 属性告诉 webpack 在哪里输出它所创建的 bundles，以及如何命名这些文件，主输出文件默认为 ./dist/main.js，其他生成文件的默认输出目录是 ./dist。
 ```
 const path = require('path');
 
 module.exports = {
-  entry: './src/index.js',
+  entry: './path/to/my/entry/file.js',
   output: {
-    filename: 'main.js',
-    path: path.resolve(__dirname, 'dist')
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'my-first-webpack.bundle.js'
   }
 };
 ```
 
-可以使用`npx webpack`,但是需要npm>=5.2,
-npx相当于npm run scripts.
+## loader
+作为开箱即用的自带特性，webpack 自身只支持 JavaScript。
+而 loader 能够让 webpack 处理那些非 JavaScript 文件，并且先将它们转换为有效 模块，然后添加到依赖图中，这样就可以提供给应用程序使用。
+```
+const path = require('path');
 
-默认识别`./webpack.config.js`配置文件.
+const config = {
+  output: {
+    filename: 'my-first-webpack.bundle.js'
+  },
+  module: {
+    rules: [
+      { test: /\.txt$/, use: 'raw-loader' }
+    ]
+  }
+};
 
-## 新增mode配置,开启后相当于默认设置了几个相应的插件
-必须选择一个模式,默认值是`'production'`,可以设置为`mode:'none'`关闭警告.
+module.exports = config;
+```
 
-production
+`test` 属性，用于标识出应该被对应的 loader 进行转换的某个或某些文件。
+`use` 属性，表示进行转换时，应该使用哪个 loader。
+
+## plugins
+loader 被用于转换某些类型的模块，而插件则可以用于执行范围更广的任务，插件的范围包括：
+打包优化、资源管理和注入环境变量。
+```
+const HtmlWebpackPlugin = require('html-webpack-plugin'); // 通过 npm 安装
+const webpack = require('webpack'); // 用于访问内置插件
+
+module.exports = {
+  module: {
+    rules: [
+      { test: /\.txt$/, use: 'raw-loader' }
+    ]
+  },
+  plugins: [
+    new HtmlWebpackPlugin({template: './src/index.html'})
+  ]
+};
+```
+
+## mode
+通过将 mode 参数设置为 development, production 或 none，可以启用对应环境下 webpack 内置的优化。默认值为 production。
 ```
 module.exports = {
   mode: 'production'
-}
-
-//相当于
-module.exports = {
-  performance: {
-    hints: 'warning',
-    maxAssetSize: 250000, //单文件超过250k，命令行告警
-    maxEntrypointSize: 250000, //首次加载文件总和超过250k，命令行告警
-  }
-  plugins: [
-    //默认添加NODE_ENV为production
-    new webpack.DefinePlugin({ "process.env.NODE_ENV": JSON.stringify("production") })
-  ],
-  optimization: {
-    minimize: true, //取代 new UglifyJsPlugin(/* ... */)
-    providedExports: true,
-    usedExports: true,
-    //识别package.json中的sideEffects以剔除无用的模块，用来做tree-shake
-    //依赖于optimization.providedExports和optimization.usedExports
-    sideEffects: true,
-    //取代 new webpack.optimize.ModuleConcatenationPlugin()
-    concatenateModules: true,
-    //取代 new webpack.NoEmitOnErrorsPlugin()，编译错误时不打印输出资源。
-    noEmitOnErrors: true
-  }
-}
-//默认关闭：in-memory caching
+};
 ```
 
-development
+## 浏览器兼容性 
+webpack 支持所有 ES5 兼容（IE8 及以下不提供支持）的浏览器。webpack 的 `import()` 和 `require.ensure()` 需要环境中有 Promise。
+如果你想要支持旧版本浏览器，你应该在使用这些 webpack 提供的表达式之前，先加载一个 polyfill。
+
+
+# entry points 入口点
+单个入口（简写）语法
+`entry: string|Array<string>`
+
 ```
 module.exports = {
-  mode: 'development'
-}
+  entry: './path/to/my/entry/file.js'
+};
+```
 
-//相当于
+对象语法 
+`entry: {[entryChunkName: string]: string|Array<string>}`
+
+```
 module.exports = {
-  //开发环境下默认启用cache，在内存中对已经构建的部分进行缓存
-  //避免其他模块修改，但是该模块未修改时候，重新构建，能够更快的进行增量构建
-  //属于空间换时间的做法
-  cache: true, 
-  output: {
-    pathinfo: true //输入代码添加额外的路径注释，提高代码可读性
+  entry: {
+    app: './src/app.js',
+    vendors: './src/vendors.js'
+  }
+};
+```
+
+多页面应用程序 
+```
+module.exports = {
+  entry: {
+    pageOne: './src/pageOne/index.js',
+    pageTwo: './src/pageTwo/index.js',
+    pageThree: './src/pageThree/index.js'
+  }
+};
+```
+
+# output 输出
+配置 output 选项可以控制 webpack 如何向硬盘写入编译文件。
+注意，即使可以存在多个入口起点，但只可指定一个输出配置。
+
+```
+module.exports = {
+  entry: {
+    app: './src/app.js',
+    search: './src/search.js'
   },
-  devtools: "eval", //sourceMap为eval类型
-  plugins: [
-    //默认添加NODE_ENV为development
-    new webpack.DefinePlugin({ "process.env.NODE_ENV": JSON.stringify("development") }),
-  ],
-  optimization: {
-    namedModules: true, //取代插件中的 new webpack.NamedModulesPlugin()
-    namedChunks: true
+  output: {
+    filename: '[name].js',
+    path: __dirname + '/dist'
   }
-}
-//默认关闭：optimization.minimize
+};
+
+// 写入到硬盘：./dist/app.js, ./dist/search.js
 ```
 
-其他的一些默认值:
+使用 CDN 和资源 hash 的复杂示例：
 ```
 module.exports = {
-  context: process.cwd()
-  entry: './src',
+  //...
   output: {
-    path: 'dist',
-    filename: '[name].js'
-  },
-  rules: [
-    {
-      type: "javascript/auto",
-      resolve: {}
-    },
-    {
-      test: /\.mjs$/i,
-      type: "javascript/esm",
-      resolve: {
-        mainFields:
-        options.target === "web" ||
-        options.target === "webworker" ||
-        options.target === "electron-renderer"
-          ? ["browser", "main"]
-          : ["main"]
+    path: '/home/proj/cdn/assets/[hash]',
+    publicPath: 'http://cdn.example.com/assets/[hash]/'
+  }
+};
+```
+
+在编译时不知道最终输出文件的 publicPath 路径的情况下，publicPath 可以留空，并且在入口起点文件运行时动态设置。
+如果你在编译时不知道 publicPath，你可以先忽略它，并且在入口起点设置 `__webpack_public_path__`。
+```
+__webpack_public_path__ = myRuntimePublicPath;
+
+// 剩余的应用程序入口
+```
+
+# mode
+提供 mode 配置选项，告知 webpack 使用相应模式的内置优化。
+```
+//只在配置中提供 mode 选项：
+module.exports = {
+  mode: 'production'
+};
+
+//或者从 CLI 参数中传递：
+webpack --mode=production
+```
+
+mode |  作用
+-|-
+development | 会将 `process.env.NODE_ENV` 的值设为 `development`。启用 `NamedChunksPlugin` 和 `NamedModulesPlugin`。
+production | 会将 `process.env.NODE_ENV` 的值设为 `production`。启用 `FlagDependencyUsagePlugin`, `FlagIncludedChunksPlugin`, `ModuleConcatenationPlugin`, `NoEmitOnErrorsPlugin`, `OccurrenceOrderPlugin`, `SideEffectsFlagPlugin` 和 `UglifyJsPlugin`.
+none | 不选用任何默认优化选项
+
+
+如果想要根据 webpack.config.js 中的 mode 变量去影响编译行为，那你必须将导出对象，改为导出一个函数：
+```
+var config = {
+  entry: './app.js'
+  //...
+};
+
+module.exports = (env, argv) => {
+
+  if (argv.mode === 'development') {
+    config.devtool = 'source-map';
+  }
+
+  if (argv.mode === 'production') {
+    //...
+  }
+
+  return config;
+};
+```
+
+
+# loader
+loader 用于对模块的源代码进行转换。loader 可以使你在 import 或"加载"模块时预处理文件。
+因此，loader 类似于其他构建工具中“任务(task)”，并提供了处理前端构建步骤的强大方法。
+
+## Configuration 
+module.rules 允许你在 webpack 配置中指定多个 loader。 
+这是展示 loader 的一种简明方式，并且有助于使代码变得简洁。
+同时让你对各个 loader 有个全局概览：
+```
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: [
+          { loader: 'style-loader' },
+          {
+            loader: 'css-loader',
+            options: {
+              modules: true
+            }
+          }
+        ]
       }
-    },
-    {
-      test: /\.json$/i,
-      type: "json"
-    },
-    {
-      test: /\.wasm$/i,
-      type: "webassembly/experimental"
-    }
-  ]
+    ]
+  }
+};
+```
+
+## inline
+可以在 import 语句或任何等效于 "import" 的方式中指定 loader。
+使用 `!` 将资源中的 loader 分开。
+分开的每个部分都相对于当前目录解析。
+```
+import Styles from 'style-loader!css-loader?modules!./styles.css';
+```
+通过前置所有规则及使用 `!`，可以将源文件对应重载到配置中的任意 loader 中。
+选项可以传递查询参数，例如 `?key=value&foo=bar`，或者一个 JSON 对象，例如 `?{"key":"value","foo":"bar"}`。
+
+## CLI 
+你也可以通过 CLI 使用 loader：
+```
+webpack --module-bind jade-loader --module-bind 'css=style-loader!css-loader'
+```
+
+## loader 特性 
+- loader 支持链式传递。loader 链中每个 loader，都对前一个 loader 处理后的资源进行转换。loader 链会按照相反的顺序执行。第一个 loader 将（应用转换后的资源作为）返回结果传递给下一个 loader，依次这样执行下去。最终，在链中最后一个 loader，返回 webpack 所预期的 JavaScript。
+- loader 可以是同步的，也可以是异步的。
+- loader 运行在 Node.js 中，并且能够执行任何可能的操作。
+- loader 接收查询参数。用于对 loader 传递配置。
+- loader 也能够使用 options 对象进行配置。
+- 除了使用 package.json 常见的 main 属性，还可以将普通的 npm 模块导出为 loader，做法是在 package.json 里定义一个 loader 字段。
+- 插件(plugin)可以为 loader 带来更多特性。
+- loader 能够产生额外的任意文件。
+
+
+## 解析 loader 
+loader 遵循标准的模块解析。多数情况下，loader 将从模块路径（通常将模块路径认为是 npm install, node_modules）解析。
+
+loader 模块需要导出为一个函数，并且使用 Node.js 兼容的 JavaScript 编写。
+通常使用 npm 进行管理，但是也可以将自定义 loader 作为应用程序中的文件。
+按照约定，loader 通常被命名为 xxx-loader（例如 json-loader）。
+有关详细信息，请查看[如何编写 loader](https://webpack.js.org/contribute/writing-a-loader/)。
+
+
+# plugins
+## 剖析 Anatomy
+webpack 插件是一个具有 apply 方法的 JavaScript 对象。
+apply 属性会被 webpack compiler 调用，并且 compiler 对象可在整个编译生命周期访问。
+```
+//ConsoleLogOnBuildWebpackPlugin.js
+
+const pluginName = 'ConsoleLogOnBuildWebpackPlugin';
+
+class ConsoleLogOnBuildWebpackPlugin {
+  apply(compiler) {
+    compiler.hooks.run.tap(pluginName, compilation => {
+      console.log('webpack 构建过程开始！');
+    });
+  }
 }
 ```
-[完整详细的webpack4默认配置](https://github.com/webpack/webpack/blob/master/lib/WebpackOptionsDefaulter.js)
+compiler hook 的 tap 方法的第一个参数，应该是驼峰式命名的插件名称。建议为此使用一个常量，以便它可以在所有 hook 中复用。
 
-## 可以直接在引入文件时用inline的方式直接设定loader
-`import Styles from 'style-loader!css-loader?modules!./styles.css';`
+## 用法  Usage
+由于插件可以携带参数/选项，你必须在 webpack 配置中，向 plugins 属性传入 new 实例。
 
-## 同构合并打包的方式
+根据你的 webpack 用法，这里有多种方式使用插件。
+
+### 配置 Configuration 
+```
+const HtmlWebpackPlugin = require('html-webpack-plugin'); //通过 npm 安装
+const webpack = require('webpack'); //访问内置的插件
+const path = require('path');
+
+module.exports = {
+  entry: './path/to/my/entry/file.js',
+  output: {
+    filename: 'my-first-webpack.bundle.js',
+    path: path.resolve(__dirname, 'dist')
+  },
+  module: {
+    rules: [
+      {
+        test: /\.(js|jsx)$/,
+        use: 'babel-loader'
+      }
+    ]
+  },
+  plugins: [
+    new HtmlWebpackPlugin({template: './src/index.html'})
+  ]
+};
+```
+
+### Node API 
+```
+//compiler.apply 并不是推荐的使用方式。
+const webpack = require('webpack'); //访问 webpack 运行时(runtime)
+const configuration = require('./webpack.config.js');
+
+let compiler = webpack(configuration);
+compiler.apply(new webpack.ProgressPlugin());
+
+compiler.run(function(err, stats) {
+  // ...
+});
+```
+
+
+# configuration
+因为 webpack 配置是标准的 Node.js CommonJS 模块，你可以做到以下事情：
+- 通过 require(...) 导入其他文件
+- 通过 require(...) 使用 npm 的工具函数
+- 使用 JavaScript 控制流表达式，例如 ?: 操作符
+- 对常用值使用常量或变量
+- 编写并执行函数来生成部分配置
+
+虽然技术上可行，但应避免以下做法：
+- 在使用 webpack 命令行接口(CLI)（应该编写自己的命令行接口(CLI)，或使用 --env）时，访问命令行接口(CLI)参数
+- 导出不确定的值（调用 webpack 两次应该产生同样的输出文件）
+- 编写很长的配置（应该将配置拆分为多个文件）
+
 ```
 var path = require('path');
-var serverConfig = {
+
+module.exports = {
+  mode: 'development',
+  entry: './foo.js',
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'foo.bundle.js'
+  }
+};
+```
+
+
+# 模块 modules
+在模块化编程中，开发者将程序分解成离散功能块(discrete chunks of functionality)，并称之为`_模块_`。
+
+每个模块具有比完整程序更小的接触面，使得校验、调试、测试轻而易举。 
+精心编写的`_模块_`提供了可靠的抽象和封装界限，使得应用程序中每个模块都具有条理清楚的设计和明确的目的。
+
+Node.js 从最一开始就支持模块化编程。然而，在 web，模块化的支持正缓慢到来。在 web 存在多种支持 JavaScript 模块化的工具，这些工具各有优势和限制。
+webpack 基于从这些系统获得的经验教训，并将`_模块_`的概念应用于项目中的任何文件。
+
+## 什么是 webpack 模块 
+对比 Node.js 模块，webpack `_模块_`能够以各种方式表达它们的依赖关系，几个例子如下：
+- ES2015 import 语句
+- CommonJS require() 语句
+- AMD define 和 require 语句
+- css/sass/less 文件中的 @import 语句。
+- 样式(url(...))或 HTML 文件(<img src=...>)中的图片链接(image url)
+
+## 支持的模块类型 
+webpack 通过 loader 可以支持各种语言和预处理器编写模块。loader 描述了 webpack 如何处理 非 JavaScript(non-JavaScript) `_模块_`，并且在bundle中引入这些`_依赖_`。 webpack 社区已经为各种流行语言和语言处理器构建了 loader.
+总的来说，webpack 提供了可定制的、强大和丰富的 API，允许任何技术栈使用 webpack，保持了在你的开发、测试和生成流程中无侵入性(non-opinionated)。
+
+
+# 模块解析 module resolution
+esolver 是一个库(library)，用于帮助找到模块的绝对路径。一个模块可以作为另一个模块的依赖模块，然后被后者引用，如下：
+```
+import foo from 'path/to/module';
+// 或者
+require('path/to/module');
+```
+所依赖的模块可以是来自应用程序代码或第三方的库(library)。resolver 帮助 webpack 找到 bundle 中需要引入的模块代码，这些代码在包含在每个 `require/import` 语句中。 当打包模块时，webpack 使用 [enhanced-resolve](https://github.com/webpack/enhanced-resolve) 来解析文件路径.
+
+## webpack 中的解析规则 
+使用 enhanced-resolve，webpack 能够解析三种文件路径：
+
+### 绝对路径 
+```
+import '/home/me/file';
+
+import 'C:\\Users\\me\\file';
+```
+由于我们已经取得文件的绝对路径，因此不需要进一步再做解析。
+
+### 相对路径 
+```
+import '../src/file1';
+import './file2';
+```
+在这种情况下，使用 import 或 require 的资源文件(resource file)所在的目录被认为是上下文目录(context directory)。在 import/require 中给定的相对路径，会添加此上下文路径(context path)，以产生模块的绝对路径(absolute path)。
+
+### 模块路径 
+```
+import 'module';
+import 'module/lib/file';
+```
+模块将在 `resolve.modules` 中指定的所有目录内搜索。 
+你可以替换初始模块路径，此替换路径通过使用 `resolve.alias` 配置选项来创建一个别名。
+
+一旦根据上述规则解析路径后，解析器(resolver)将检查路径是否指向文件或目录。如果路径指向一个文件：
+
+如果路径具有文件扩展名，则被直接将文件打包。
+否则，将使用 `resolve.extensions` 选项作为文件扩展名来解析，此选项告诉解析器在解析中能够接受哪些扩展名（例如 .js, .jsx）。
+如果路径指向一个文件夹，则采取以下步骤找到具有正确扩展名的正确文件：
+
+如果文件夹中包含 package.json 文件，则按照顺序查找 `resolve.mainFields` 配置选项中指定的字段。
+并且 package.json 中的第一个这样的字段确定文件路径。
+如果 package.json 文件不存在或者 package.json 文件中的 main 字段没有返回一个有效路径，则按照顺序查找 `resolve.mainFiles` 配置选项中指定的文件名，看是否能在 import/require 目录下匹配到一个存在的文件名。
+文件扩展名通过 `resolve.extensions` 选项采用类似的方法进行解析。
+
+```
+module.exports = {
+  //...
+  resolve: {
+    mainFields: ['browser', 'module', 'main']
+  }
+};
+```
+
+## 解析 Loader(Resolving Loaders) 
+Loader 解析遵循与文件解析器指定的规则相同的规则。
+但是 resolveLoader 配置选项可以用来为 Loader 提供独立的解析规则。
+```
+module.exports = {
+  //...
+  resolveLoader: {
+    modules: [ 'node_modules' ],
+    extensions: [ '.js', '.json' ],
+    mainFields: [ 'loader', 'main' ]
+  },
+  //...
+  resolve: {
+    alias: {
+      Utilities: path.resolve(__dirname, 'src/utilities/'),
+      Templates: path.resolve(__dirname, 'src/templates/')
+    }
+  }
+};
+```
+
+## 缓存 
+每个文件系统访问都被缓存，以便更快触发对同一文件的多个并行或串行请求。
+在观察模式下，只有修改过的文件会从缓存中摘出。如果关闭观察模式，在每次编译前清理缓存。
+```
+module.exports = {
+  //...
+  watch: false
+};
+```
+
+# 依赖图 dependency graph
+任何时候，一个文件依赖于另一个文件，webpack 就把此视为文件之间有依赖关系。
+这使得 webpack 可以接收非代码资源(non-code asset)（例如图像或 web 字体），并且可以把它们作为_依赖_提供给你的应用程序。
+
+webpack 从命令行或配置文件中定义的一个模块列表开始，处理你的应用程序。 
+从这些 入口起点 开始，webpack 递归地构建一个依赖图，这个依赖图包含着应用程序所需的每个模块，然后将所有这些模块打包为少量的 bundle -- 通常只有一个 -- 可由浏览器加载。
+
+
+# manifest
+在使用 webpack 构建的典型应用程序或站点中，有三种主要的代码类型：
+- 你或你的团队编写的源码。
+- 你的源码会依赖的任何第三方的 library 或 "vendor" 代码。
+- webpack 的 runtime 和 manifest，管理所有模块的交互。
+
+## Runtime 
+runtime，以及伴随的 manifest 数据，
+主要是指：在浏览器运行时，webpack 用来连接模块化的应用程序的所有代码。
+runtime 包含：在模块交互时，连接模块所需的加载和解析逻辑。
+包括浏览器中的已加载模块的连接，以及懒加载模块的执行逻辑。
+
+## Manifest 
+当编译器(compiler)开始执行、解析和映射应用程序时，它会保留所有模块的详细要点。
+这个数据集合称为 "Manifest"，当完成打包并发送到浏览器时，会在运行时通过 Manifest 来解析和加载模块。
+无论你选择哪种模块语法，那些 import 或 require 语句现在都已经转换为 `__webpack_require__`方法，此方法指向模块标识符(module identifier)。
+通过使用 manifest 中的数据，runtime 将能够查询模块标识符，检索出背后对应的模块。
+
+*runtime 和 manifest 的注入在每次构建都会发生变化。*
+
+# 构建目标 targets
+因为服务器和浏览器代码都可以用 JavaScript 编写，所以 webpack 提供了多种构建目标(target)，你可以在你的 webpack 配置中设置。
+## 用法 
+要设置 target 属性，只需要在你的 webpack 配置中设置 target 的值。
+```
+webpack.config.js
+
+module.exports = {
+  target: 'node'
+};
+```
+在上面例子中，使用 node webpack 会编译为用于「类 Node.js」环境（使用 Node.js 的 require ，而不是使用任意内置模块（如 fs 或 path）来加载 chunk）。
+
+每个target都有各种部署(deployment)/环境(environment)特定的附加项，以支持满足其需求。
+[可用值](https://webpack.js.org/configuration/target/)
+
+
+## 多个 Target 
+尽管 webpack 不支持向 target 传入多个字符串，但是可以通过打包两份分离的配置来创建同构的库：
+```
+//lib.node.js
+const path = require('path');
+const serverConfig = {
   target: 'node',
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -143,8 +523,9 @@ var serverConfig = {
   //…
 };
 
-var clientConfig = {
-  target: 'web', // <=== can be omitted as default is 'web'
+//lib.js
+const clientConfig = {
+  target: 'web', // <=== 默认是 'web'，可省略
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'lib.js'
@@ -156,357 +537,44 @@ module.exports = [ serverConfig, clientConfig ];
 ```
 
 
-## 增加 sideEffects 参数识别副作用代码
-影响tree shaking的根本原因在于side effects（副作用），其中最广为人知的一条side effect就是动态引入依赖的问题。
-可以参考这篇文章[你的Tree-Shaking并没什么卵用](https://segmentfault.com/a/1190000012794598)
+# 模块热替换 hot module replacement
+模块热替换(HMR - Hot Module Replacement)功能会在应用程序运行过程中替换、添加或删除模块，而无需重新加载整个页面。
+主要是通过以下几种方式，来显著加快开发速度：
+- 保留在完全重新加载页面时丢失的应用程序状态。
+- 只更新变更内容，以节省宝贵的开发时间。
+- 调整样式更加快速 - 几乎相当于在浏览器调试器中更改样式。
 
-大体来说就是某些代码不能准确的被tree shaking,算是webpack的一个缺陷,可以使用手动的sideEffects来设置哪些是副作用代码.
-可以在package.json文件中写,也可以在webpack配置中写.
+## HMR 的工作原理
+### 在应用程序中  In the Application 
+通过以下步骤，可以做到在应用程序中置换(swap in and out)模块：
+- 应用程序代码要求 HMR runtime 检查更新。
+- HMR runtime（异步）下载更新，然后通知应用程序代码。
+- 应用程序代码要求 HMR runtime 应用更新。
+- HMR runtime（异步）应用更新。
 
-所有代码都不包含副作用
-```
-//package.json
-{
-  "name": "your-project",
-  "sideEffects": false
-}
-```
+### 在编译器中 In the Compiler 
+除了普通资源，编译器(compiler)需要发出 "update"，以允许更新之前的版本到新的版本。"update" 由两部分组成：
+- 更新后的 manifest(JSON)
+- 一个或多个更新后的 chunk (JavaScript)
 
-某些代码含有副作用,特别是使用了类似使用了css-loader的文件..
-```
-//package.json
-{
-  "name": "your-project",
-  "sideEffects": [
-    "./src/some-side-effectful-file.js",
-    "*.css"
-  ]
-}
-```
+manifest 包括新的编译 hash 和所有的待更新 chunk 目录。每个更新 chunk 都含有对应于此 chunk 的全部更新模块（或一个 flag 用于表明此模块要被移除）的代码。
 
-```
-//webpack.config.js
-module.rules: [
-  {
-    include: path.resolve("node_modules", "lodash"),
-    sideEffects: false
-  }
-]
-```
+编译器确保模块 ID 和 chunk ID 在这些构建之间保持一致。通常将这些 ID 存储在内存中（例如，使用 webpack-dev-server 时），但是也可能将它们存储在一个 JSON 文件中。
 
-## hmr里[chunkhash]
-并没有支持,看来就是不能这样用吧
+### 在模块中  In a Module
+HMR 是可选功能，只会影响包含 HMR 代码的模块。举个例子，通过 style-loader 为 style 样式追加补丁。 为了运行追加补丁，style-loader 实现了 HMR 接口；当它通过 HMR 接收到更新，它会使用新的样式替换旧的样式。
 
-## 插件变更
-extract-text-webpack-plugin很可能不会支持webpack4.3以上版本.可以用[mini-css-extract-plugin](https://github.com/webpack-contrib/mini-css-extract-plugin)替代
+类似的，当在一个模块中实现了 HMR 接口，你可以描述出当模块被更新后发生了什么。然而在多数情况下，不需要强制在每个模块中写入 HMR 代码。如果一个模块没有 HMR 处理函数，更新就会冒泡。这意味着一个简单的处理函数能够对整个模块树(complete module tree)进行更新。如果在这个模块树中，一个单独的模块被更新，那么整组依赖模块都会被重新加载。
 
-html-webpack-plugin 配置可能需要微调
-```
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-module.exports = {
-  plugins:[
-    new HtmlWebpackPlugin({
-      filename: 'index.html',
-      template: 'index.html',
-      inject: true,
-      hash: true,
-      chunksSortMode: 'none' //如果使用webpack4将该配置项设置为'none'
-    })
-  ]
-}
-```
+### 在 HMR Runtime 中  In the Runtime
+对于模块系统的 runtime，附加的代码被发送到 parents 和 children 跟踪模块。在管理方面，runtime 支持两个方法 check 和 apply。
 
-`webpack.NamedModulesPlugin -> optimization.namedModules`
+check 发送 HTTP 请求来更新 manifest。如果请求失败，说明没有可用更新。如果请求成功，待更新 chunk 会和当前加载过的 chunk 进行比较。对每个加载过的 chunk，会下载相对应的待更新 chunk。当所有待更新 chunk 完成下载，就会准备切换到 ready 状态。
 
-`webpack.NoEmitOnErrorsPlugin -> optimization.noEmitOnErrors`
+apply 方法将所有被更新模块标记为无效。对于每个无效模块，都需要在模块中有一个更新处理函数，或者在它的父级模块们中有更新处理函数。否则，无效标记冒泡，并也使父级无效。每个冒泡继续直到到达应用程序入口起点，或者到达带有更新处理函数的模块（以最先到达为准）。如果它从入口起点开始冒泡，则此过程失败。
 
-`webpack.optimize.ModuleConcatenationPlugin -> optimization.concatenateModules`
-
-[Optimization 相关文档](https://webpack.js.org/configuration/optimization)
-
-
-![](https://images2018.cnblogs.com/blog/771172/201806/771172-20180626205808425-69320185.jpg)
+之后，所有无效模块都被（通过 dispose 处理函数）处理和解除加载。然后更新当前 hash，并且调用所有 "accept" 处理函数。runtime 切换回闲置状态，一切照常继续。
 
 
 
-### minimizer
-优化的压缩配置:
-```
-var UglifyJsPlugin = require('uglifyjs-webpack-plugin')
-var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 
-module.exports = {
-  optimization: {
-    minimizer: [
-      // 自定义js优化配置，将会覆盖默认配置
-      new UglifyJsPlugin({
-        exclude: /\.min\.js$/, // 过滤掉以".min.js"结尾的文件，认为这个后缀本身就是已经压缩好的代码，没必要进行二次压缩
-        cache: true,
-        parallel: true, // 开启并行压缩，充分利用cpu
-        sourceMap: false,
-        extractComments: false, // 移除注释
-        uglifyOptions: {
-          compress: {
-            unused: true,
-            warnings: false,
-            drop_debugger: true
-          },
-          output: {
-            comments: false
-          }
-        }
-      }),
-      // 用于优化css文件
-      new OptimizeCssAssetsPlugin({
-        assetNameRegExp: /\.css$/g,
-        cssProcessorOptions: {
-          safe: true,
-          autoprefixer: { disable: true }, // 禁用掉cssnano对于浏览器前缀的处理
-          mergeLonghand: false,
-          discardComments: {
-            removeAll: true // 移除注释
-          }
-        },
-        canPrint: true
-      })
-    ]
-  }
-}
-```
-OptimizeCssAssetsPlugin插件主要用来优化css文件的输出，默认使用[cssnano](https://cssnano.co/optimisations/)，其优化策略主要包括：摈弃重复的样式定义、砍掉样式规则中多余的参数、移除不需要的浏览器前缀等.
-
-
-### optimization.runtimeChunk
-CommonsChunkPlugin 被移除，使用 optimization.splitChunks 和 optimization.runtimeChunk 代替。
-[RIP CommonsChunkPlugin](https://gist.github.com/sokra/1522d586b8e5c0f5072d7565c2bee693)
-
-`optimization.runtimeChunk`中'single'配置即将所有chunk的运行代码打包到一个文件中，'multiple'配合就是给每一个chunk的运行代码打包一个文件。
-
-我们可以配合InlineManifestWebpackPlugin插件将运行代码直接插入html文件中，因为这段代码非常少，这样做可以避免一次请求的开销
-```
-var HtmlWebpackPlugin = require('html-webpack-plugin')
-var InlineManifestWebpackPlugin = require('inline-manifest-webpack-plugin')
-
-module.exports = {
-  entry: {
-    app: 'src/index.js'
-  },
-  optimization: {
-    runtimeChunk: 'single'
-    // 等价于
-    // runtimeChunk: {
-    //   name: 'runtime'
-    // }
-  },
-  plugins: [
-    new HtmlWebpackPlugin({
-      title: 'test',
-      filename: 'index.html',
-      template: 'xxx',
-      inject: true,
-      chunks: ['runtime', 'app'], // 将runtime插入html中
-      chunksSortMode: 'dependency',
-      minify: {/* */}
-    }),
-    new InlineManifestWebpackPlugin('runtime')
-  ]
-}
-```
-InlineManifestWebpackPlugin插件的顺序一定要在HtmlWebpackPlugin之后，否则会导致编译失败。
-
-
-### optimization.splitChunks
-[split-chunks-plugin相关文档](https://webpack.js.org/plugins/split-chunks-plugin/)
-
-optimization.splitChunks配置项
-- minSize (default: 30000) Minimum size for a chunk.
-- minChunks (default: 1) Minimum number of chunks that share a module before splitting
-- maxInitialRequests (default 3) Maximum number of parallel requests at an entrypoint
-- maxAsyncRequests (default 5) Maximum number of parallel requests at on-demand loading
-- chunks 有3个值"all","async" ,"initial".分别代表了全部 chunk，按需加载的 chunk 以及初始加载的 chunk。chunks 也可以是一个函数，在这个函数里可以拿到 chunk.name。
-
-
-optimization.splitChunks 的默认配置.
-一般来说直接使用默认配置即可.
-```
-module.exports = {
-  optimization: {
-    minimize: env === 'production' ? true : false, //是否进行代码压缩
-    splitChunks: {
-      chunks: "async",
-      minSize: 30000, //模块大于30k会被抽离到公共模块
-      minChunks: 1, //模块出现1次就会被抽离到公共模块
-      maxAsyncRequests: 5, //异步模块，一次最多只能被加载5个
-      maxInitialRequests: 3, //入口模块最多只能加载3个
-      name: true,
-      cacheGroups: {
-        default: {
-          minChunks: 2,
-          priority: -20
-          reuseExistingChunk: true,
-        },
-        vendors: {
-          test: /[\\/]node_modules[\\/]/,
-          priority: -10
-        }
-      }
-    },
-    runtimeChunk {
-      name: "runtime"
-    }
-  }
-}
-```
-默认配置只会作用于异步加载的代码块，它限制了分离文件的最小体积，即30KB（压缩之前），这个是前提条件，然后它有两个分组：属于node_modules模块，或者被至少2个入口文件引用，它才会被打包成独立的文件。
-optimization.splitChunks.cacheGroups.default: false 可以关闭cacheGroups.default.
-Webpack 4 默认的抽取的优先级是最低的，所以模块会优先被抽取到用户的自定义 chunk 中。
-
-所有 node_modules 中引入的模块打包成一个模块：
-```
-vendors1: {
-    test: /[\\/]node_modules[\\/]/,
-    name: 'vendor',
-    chunks: 'all',
-  }
-```
-
-假设有 a, b, c 三个入口。希望 a，b 的公共代码单独打包为 common。也就是说 c 的代码不参与公共代码的分割。
-可以定义一个 cacheGroups，然后设置 chunks 属性为一个函数，这个函数负责过滤这个 cacheGroups 包含的 chunk 是哪些。
-示例代码如下：
-```
-optimization: {
-    splitChunks: {
-      cacheGroups: {
-        common: {
-          chunks(chunk) {
-            return chunk.name !== 'c';
-          },
-          name: 'common',
-          minChunks: 2,
-        },
-      },
-    },
-  },
-```
-上面配置的意思就是：把 a，b 入口中的公共代码单独打包为一个名为 common 的 chunk。使用 chunk.name，可以轻松的完成这个需求。
-
-
-对不同分组入口中引入的 node_modules 中的依赖进行分组。
-假设有 a, b, c, d 四个入口。希望 a，b 的依赖打包为 vendor1，c, d 的依赖打包为 vendor2。
-这个需求要求对入口和模块都做过滤，所以需要使用 test 属性这个细粒度比较小的方式。
-思路就是，写两个 cacheGroup，一个 cacheGroup 的判断条件是：如果 module 在 a 或者 b chunk 被引入，并且 module 的路径包含 node_modules，那这个 module 就应该被打包到 vendors1 中。 vendors2 同理。
-```
-vendors1: {
-    test: module => {
-      for (const chunk of module.chunksIterable) {
-			if (chunk.name && /(a|b)/.test(chunk.name)) {
-				if (module.nameForCondition() && /[\\/]node_modules[\\/]/.test(module.nameForCondition())) {
-                 return true;
-             }
-			}
-	   }
-      return false;
-    },
-    minChunks: 2,
-    name: 'vendors1',
-    chunks: 'all',
-  },
-  vendors2: {
-    test: module => {
-      for (const chunk of module.chunksIterable) {
-			if (chunk.name && /(c|d)/.test(chunk.name)) {
-				if (module.nameForCondition() && /[\\/]node_modules[\\/]/.test(module.nameForCondition())) {
-                 return true;
-             }
-			}
-	   }
-      return false;
-    },
-    minChunks: 2,
-    name: 'vendors2',
-    chunks: 'all',
-  },
-};
-```
-
-过去CommonsChunkPlugin的常规用法
-```
-module.exports = {
-  plugins: [
-    new webpack.optimize.CommonsChunkPlugin({ //将node_modules中的代码放入vendor.js中
-      name: "vendor",
-      minChunks: function(module){
-        return module.context && module.context.includes("node_modules");
-      }
-    }),
-    new webpack.optimize.CommonsChunkPlugin({ //将webpack中runtime相关的代码放入manifest.js中
-      name: "manifest",
-      minChunks: Infinity
-    }),
-  ]
-}
-```
-
-推荐配置:
-```
-splitChunks: {
-  cacheGroups: {
-    vendors: {
-      test: /[\\/]node_modules[\\/]/,
-      name: 'vendor',
-      minSize: 30000,
-      minChunks: 1,
-      chunks: 'initial',
-      priority: 1 // 该配置项是设置处理的优先级，数值越大越优先处理
-    },
-    commons: {
-      test: /[\\/]src[\\/]common[\\/]/,
-      name: 'common',
-      minSize: 30000,
-      minChunks: 3,
-      chunks: 'initial',
-      priority: -1,
-      reuseExistingChunk: true // 这个配置允许我们使用已经存在的代码块
-    }
-  }
-}
-```
-首先是将node_modules的模块分离出来。异步加载的模块将会继承默认配置，这里就不需要二次配置了。
-第二点是分离出共享模块，将公用代码提取出来。
-或者还有另外一种选择，将后缀为.js且使用次数超过3次的文件提取出来，但这不利于持久化缓存，新增或删除文件都有可能影响到使用次数，从而导致原先的公共文件失效。
-
-
-## 长缓存(Long-term caching)
-webpack4 的Long-term caching 中 Vendor hash 的问题还是没有解决，需要手动配置。
-Long-term caching 在操作的时候，有个小问题，这个问题是关于 chunk 内容和 hash 变化不一致的：在公共代码 Vendor 内容不变的情况下，添加 entry，或者 external 依赖，或者异步模块的时候,Vendor 的 hash 会改变。
-[可以使用这个方案优化](https://medium.com/webpack/predictable-long-term-caching-with-webpack-d3eee1d3fa31)
-这个方案的核心就是，Webpack 内部维护了一个自增的 id，每个 chunk 都有一个 id。所以当增加 entry 或者其他类型 chunk 的时候，id 就会变化，导致内容没有变化的 chunk 的 id 也发生了变化。
-应对方案是，使用 webpack.NamedChunksPlugin 把 chunk id 变为一个字符串标识符，这个字符包一般就是模块的相对路径。这样模块的 chunk id 就可以稳定下来。
-
-## 相关升级
-[css-loader](https://github.com/webpack-contrib/css-loader/releases)升级到了v1.0.0,使用发生变化
-
-## 其他
-import() 语句总是返回命名空间对象，CommonJS 模块被包装为默认导出（default export）
-
-webpack 原生支持使用 ES Module 导入 JSON。
-
-InlineChunkWebpackPlugin可以将指定的chunk通过inline的形式写入index.html文件。
-
-webpack-dev-server似乎有一个升级版,叫做[webpack-serve](https://github.com/webpack-contrib/webpack-serve),但还不成熟
-
-
-- 移除 module.loaders
-- 移除 loaderContext.options
-- 移除 Compilation.notCacheable flag
-- 移除 NoErrorsPlugin
-- 移除 Dependency.isEqualResource
-- 移除 NewWatchingPlugin
-- 移除 CommonsChunkPlugin
-
-
-可参考配置:
-[webpack官方examples](https://github.com/webpack/webpack/tree/master/examples)
-[webpack官方configCases](https://github.com/webpack/webpack/tree/master/test/configCases)
-[webpack4-test](https://github.com/ansenhuang/webpack4-test)
-[vuejs-templates](https://github.com/vuejs-templates/webpack)
