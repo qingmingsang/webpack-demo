@@ -1,0 +1,12 @@
+ @font-face {
+     font-family: 'MyFont';
+     src: url('./VTC.ttf');
+     font-weight: bold;
+     font-style: normal;
+ }
+
+ .hello {
+     color: red;
+     font-family: 'MyFont';
+     background: url('./pika.jpg');
+ }
