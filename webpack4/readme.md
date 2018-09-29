@@ -1,4 +1,7 @@
 # 拓展阅读
+[javascript-module-systems-showdown](https://auth0.com/blog/javascript-module-systems-showdown/)
+[predictable-long-term-caching-with-webpack](https://medium.com/webpack/predictable-long-term-caching-with-webpack-d3eee1d3fa31)
+[separating-manifest](https://survivejs.com/webpack/optimizing/separating-manifest/)
 [Module Methods](https://webpack.js.org/api/module-methods/)
 [Writing a Loader](https://webpack.js.org/contribute/writing-a-loader/)
 [tapable](https://github.com/webpack/tapable)
