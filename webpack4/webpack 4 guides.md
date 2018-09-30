@@ -271,17 +271,286 @@ vendors~lodash.bundle.js   547 KiB  vendors~lodash  [emitted]  vendors~lodash
 # Prefetching/Preloading modules 
 ssr中用的蛮多的技术.
 
+webpack 4.6.0+增加了对预取和预加载的支持。
+
+在声明导入时使用这些内联指​​令允许webpack输出“Resource Hint”，它告诉浏览器：
+- prefetch：将来某些页面可能需要资源
+- preload：当前页面可能需要资源
+
+```
+import(/* webpackPrefetch: true */ 'LoginModal');
+```
+这将导致`<link rel="prefetch" href="login-modal-chunk.js">`被附加在页面的头部，这将指示浏览器在空闲时间预取login-modal-chunk.js文件。
+
+一旦父块加载，webpack将添加预取提示。
+与prefetch相比，Preload指令有许多不同之处：
+- 预加载(preloaded)的块开始与父块并行加载。父块完成加载后，将启动预取的块( prefetched)。
+- 预加载的块具有中等优先级并立即下载。浏览器空闲时会下载预取的块。
+- 父组块应立即请求预加载的块。可以在将来的任何时间使用预取的块。
+- 浏览器支持是不同的。
+
+```
+import(/* webpackPreload: true */ 'ChartingLibrary');
+```
+假设一个ChartComponent需要巨大的组件ChartingLibrary。
+它会LoadingIndicator在呈现时显示并立即执行按需导入ChartingLibrary.
+当ChartComponent请求使用该页面的页面时，也会通过请求charting-library-chunk`<link rel="preload">`。假设页面块较小并且完成得更快，则页面将显示a LoadingIndicator，直到已经请求charting-library-chunk完成为止。这将提供一点加载时间，因为它只需要一次往返而不是两次。特别是在高延迟环境中。
+
+错误地使用webpackPreload实际上会损害性能，因此使用它时要小心
+
 [link-rel-prefetch-preload-in-webpack](https://medium.com/webpack/link-rel-prefetch-preload-in-webpack-51a52358f84c)
 [preload-prefetch-and-priorities-in-chrome](https://medium.com/reloading/preload-prefetch-and-priorities-in-chrome-776165961bbf)
 [Preloading_content](https://developer.mozilla.org/en-US/docs/Web/HTML/Preloading_content)
 
 
+# Bundle Analysis
+[analyse](https://github.com/webpack/analyse)//这个是webpack自带的好像是
+[webpack-chart](https://github.com/alexkuz/webpack-chart)
+[webpack-visualizer](https://github.com/chrisbateman/webpack-visualizer)
+[webpack-bundle-analyzer](https://github.com/webpack-contrib/webpack-bundle-analyzer)
 
 
+# Lazy Loading
+懒加载或者按需加载，是一种很好的优化网页或应用的方式。
+这种方式实际上是先把你的代码在一些逻辑断点处分离开，然后在一些代码块中完成某些操作后，立即引用或即将引用另外一些新的代码块。
+这样加快了应用的初始加载速度，减轻了它的总体体积，因为某些代码块可能永远不会被加载。
+
+```
+  output: {
+    filename: '[name].bundle.js',
+    chunkFilename: '[name].chunk.js',
+    path: path.resolve(__dirname, 'dist')
+  },
+```
+
+```
+Version: webpack 4.20.2
+
+          Asset       Size  Chunks             Chunk Names
+index.bundle.js    556 KiB   index  [emitted]  index
+ print.chunk.js  645 bytes   print  [emitted]  print
+     index.html  187 bytes          [emitted]
+```
+当调用 ES6 模块的 import() 方法（引入模块）时，必须指向模块的 .default 值，因为它才是 promise 被处理后返回的实际的 module 对象。
+
+[react-router code-splitting](https://reacttraining.com/react-router/web/guides/code-splitting)
+[Lazy-load-in-Vue-using-Webpack-s-code-splitting](https://alexjoverm.github.io/2017/07/16/Lazy-load-in-Vue-using-Webpack-s-code-splitting/)
+[angularjs-webpack-lazyload](https://medium.com/@var_bin/angularjs-webpack-lazyload-bb7977f390dd)
+[lazy-loading-es2015-modules-in-the-browser](https://dzone.com/articles/lazy-loading-es2015-modules-in-the-browser)
 
 
+# Caching
+## output.path 
+`string`
+output 目录对应一个绝对路径。
+```
+module.exports = {
+  //...
+  output: {
+    path: path.resolve(__dirname, 'dist/assets')
+  }
+};
+```
+
+## output.filename 
+`string function`
+此选项决定了每个输出 bundle 的名称。这些 bundle 将写入到 output.path 选项指定的目录下。
+
+对于单个入口起点，filename 会是一个静态名称。
+```
+module.exports = {
+  //...
+  output: {
+    filename: 'bundle.js'
+  }
+};
+```
+
+当通过多个入口起点(entry point)、代码拆分(code splitting)或各种插件(plugin)创建多个 bundle，应该使用以下一种替换方式，来赋予每个 bundle 一个唯一的名称……
+
+使用入口名称：
+```
+module.exports = {
+  //...
+  output: {
+    filename: '[name].bundle.js'
+  }
+};
+```
+使用内部 chunk id
+```
+module.exports = {
+  //...
+  output: {
+    filename: '[id].bundle.js'
+  }
+};
+```
+使用每次构建过程中，唯一的 hash 生成
+```
+module.exports = {
+  //...
+  output: {
+    filename: '[name].[hash].bundle.js'
+  }
+};
+```
+使用基于每个 chunk 内容的 hash：
+```
+module.exports = {
+  //...
+  output: {
+    filename: '[chunkhash].bundle.js'
+  }
+};
+```
+使用为提取的内容生成的哈希：
+```
+module.exports = {
+  //...
+  output: {
+    filename: '[contenthash].bundle.css'
+  }
+};
+```
+使用函数返回文件名：
+```
+module.exports = {
+  //...
+  output: {
+    filename: (chunkData) => {
+      return chunkData.chunk.name === 'main' ? '[name].js': '[name]/[name].js';
+    },
+  }
+};
+```
+
+[hash] 和 [chunkhash] 的长度可以使用 [hash:16]（默认为20）来指定。或者，通过指定[output.hashDigestLength](https://webpack.js.org/configuration/output/#output-hashdigestlength) 在全局配置长度。
+
+在使用 ExtractTextWebpackPlugin 时，可以用 [contenthash] 来获取提取文件的 hash（既不是 [hash] 也不是 [chunkhash]）。
+
+```
+  output: {
+    filename: '[name].[contenthash].js',
+    path: path.resolve(__dirname, 'dist')
+  }
+```
+因为 webpack 在入口 chunk 中，包含了某些样板(boilerplate)，特别是 runtime 和 manifest。可能导致每次打出的包,虽然内容没变,但是contenthash/chunkhash的值还是发生了变化.在文件结构比较简单时可能不会发生变化.
 
 
+## 提取模板 Extracting Boilerplate
+将 optimization.runtimeChunk 设置为 single，就能创建单个运行时 bundle(one runtime bundle).
+
+### optimization.runtimeChunk
+```
+  optimization: {
+    runtimeChunk: 'single'
+  }
+
+//output
+                          Asset       Size  Chunks             Chunk Names
+   main.845262d1c1cf85cfe242.js   69.7 KiB       0  [emitted]  main
+runtime.2a0331f68276675b6b4d.js   1.42 KiB       1  [emitted]  runtime
+                     index.html  275 bytes          [emitted]
+```
+相当于设置了
+```
+module.exports = {
+  //...
+  optimization: {
+    runtimeChunk: {
+      name: 'runtime'
+    }
+  }
+};
+```
+
+```
+  optimization: {
+    runtimeChunk: true//或'multiple'
+  }
+
+//output
+                               Asset       Size  Chunks             Chunk Names
+        main.845262d1c1cf85cfe242.js   69.7 KiB       0  [emitted]  main
+runtime~main.2a0331f68276675b6b4d.js   1.42 KiB       1  [emitted]  runtime~main
+                          index.html  280 bytes          [emitted]
+```
+相当于设置了
+```
+module.exports = {
+  //...
+  optimization: {
+    runtimeChunk: {
+      name: entrypoint => `runtime~${entrypoint.name}`
+    }
+  }
+};
+```
+
+
+### splitChunks.cacheGroups 
+缓存组可以继承和/或覆盖任何`splitChunks.*`的选项; 
+但是test，priority和reuseExistingChunk只能在高速缓存组级别配置(cache group level)。要禁用任何默认缓存组，请将其设置为false。
+```
+module.exports = {
+  //...
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        default: false
+      }
+    }
+  }
+};
+```
+
+提取vendors bundle
+```
+module.exports = {
+  //...
+  optimization: {
+    runtimeChunk: 'single',
+    splitChunks: {
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all'
+        }
+      }
+    }
+  },
+};
+
+//output
+
+                          Asset       Size  Chunks             Chunk Names
+   main.0a87143b1eb30e13df7c.js  260 bytes       0  [emitted]  main
+vendors.0a20f6f07497391db6f5.js   69.5 KiB       1  [emitted]  vendors
+runtime.ad513d18f94de88a582b.js   1.42 KiB       2  [emitted]  runtime
+                     index.html  353 bytes          [emitted]
+```
+
+## 模块标识符 Module Identifiers
+### module.id (CommonJS) 
+当前模块的 ID。
+```
+module.id === require.resolve('./file.js');
+```
+只修改主体文件,并未修改node_modules里的文件,vendors的hash值却发生了变化,为了解决这个问题可以用2种插件解决:
+NamedModulesPlugin  
+`new webpack.NamedModulesPlugin()`
+将使用模块的路径，而不是数字标识符。
+虽然此插件有助于在开发过程中输出结果的可读性，然而执行时间会长一些,适合在开发环境中使用。(说实话我没看出来哪里增加了可读性了)
+
+[HashedModuleIdsPlugin](https://webpack.js.org/plugins/hashed-module-ids-plugin/)
+推荐用于生产环境构建
+`new webpack.HashedModuleIdsPlugin()`
+
+
+[what is cache](https://searchstorage.techtarget.com/definition/cache)
+[Explain Hash Changes in Caching Guide](https://github.com/webpack/webpack.js.org/issues/652)
 
 
 
