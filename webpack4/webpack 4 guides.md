@@ -553,6 +553,25 @@ NamedModulesPlugin
 [Explain Hash Changes in Caching Guide](https://github.com/webpack/webpack.js.org/issues/652)
 
 
+# Authoring Libraries
+externals可以指定某些库/文件不打入bundle中
+```
+  externals: [
+    'library/one',
+    'library/two',
+    // 所有以 "library/" 开始的
+    /^library\/.+$/
+  ]
+
+      externals: {
+        lodash: {
+            commonjs: 'lodash',
+            commonjs2: 'lodash',
+            amd: 'lodash',
+            root: '_'
+        }
+    }
+```
 
 
 
