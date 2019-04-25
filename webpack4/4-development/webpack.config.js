@@ -3,13 +3,14 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 
 module.exports = {
+  mode: 'development',
   entry: {
     app: './src/index.js',
     print: './src/print.js'
   },
   devtool: 'inline-source-map',//这种方式好像不会在dist生成map文件
   plugins: [
-    new CleanWebpackPlugin(['dist']),
+    new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       title: 'Output Management'
     })
@@ -19,6 +20,8 @@ module.exports = {
     path: path.resolve(__dirname, 'dist')
   },
   devServer: {
-    contentBase: './dist'//告诉开发服务器(dev server)，在哪里查找文件
+    //告诉开发服务器(dev server)，在哪里查找文件
+    //目前没发现有什么用
+    contentBase: './dist'
   },
 };

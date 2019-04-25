@@ -14,12 +14,12 @@
   "author": "qm",
   "license": "ISC",
   "devDependencies": {
-    "css-loader": "^1.0.0",
+    "css-loader": "^2.1.1",
     "csv-loader": "^3.0.2",
-    "file-loader": "^2.0.0",
-    "style-loader": "^0.23.0",
-    "webpack": "^4.20.2",
-    "webpack-cli": "^3.1.1",
+    "file-loader": "^3.0.1",
+    "style-loader": "^0.23.1",
+    "webpack": "^4.30.0",
+    "webpack-cli": "^3.3.1",
     "xml-loader": "^1.2.1"
   },
   "dependencies": {

@@ -122,6 +122,8 @@ module.exports = {
   }
 };
 ```
+使用 `optimization.splitChunks` 为页面间共享的应用程序代码创建 bundle。由于入口起点增多，多页应用能够复用入口起点之间的大量代码/模块，从而可以极大地从这些技术中受益。
+
 
 # output 输出
 配置 output 选项可以控制 webpack 如何向硬盘写入编译文件。
