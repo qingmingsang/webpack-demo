@@ -4,13 +4,17 @@
   "description": "",
   "private": true,
   "main": "index.js",
+  "sideEffects": [
+    "*.css"
+  ],
   "scripts": {
     "x": "npx webpack",
     "config": "npx webpack --config webpack.config.js",
     "config2": "node_modules/.bin/webpack --config webpack.config.js",
     "build": "webpack --color --config webpack.config.js",
     "watch": "webpack --watch",
-    "start": "webpack-dev-server --open"
+    "start": "webpack-dev-server --open",
+    "dev": "webpack --color --config webpack.config.dev.js"
   },
   "keywords": [],
   "author": "qm",

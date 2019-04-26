@@ -15,10 +15,10 @@
   "author": "qm",
   "license": "ISC",
   "devDependencies": {
-    "clean-webpack-plugin": "^0.1.19",
+    "clean-webpack-plugin": "^2.0.1",
     "html-webpack-plugin": "^3.2.0",
-    "webpack": "^4.20.2",
-    "webpack-cli": "^3.1.1"
+    "webpack": "^4.30.0",
+    "webpack-cli": "^3.3.1"
   },
   "dependencies": {
     "lodash": "^4.17.11"
