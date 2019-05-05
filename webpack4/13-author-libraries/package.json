@@ -2,7 +2,7 @@
   "name": "13-author-libraries",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/webpack-numbers.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -11,6 +11,6 @@
   "license": "ISC",
   "devDependencies": {
     "lodash": "^4.17.11",
-    "webpack": "^4.20.2"
+    "webpack": "^4.30.0"
   }
 }

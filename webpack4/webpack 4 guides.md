@@ -573,5 +573,57 @@ externals可以指定某些库/文件不打入bundle中
     }
 ```
 
+```
+    output: {
+        path: path.resolve(__dirname, 'dist'),
+        filename: 'webpack-numbers.js',
+        library: 'webpackNumbers',
+        libraryTarget: 'umd'
+    },
+```
+
+有以下几种方式暴露 library：
+- 变量：作为一个全局变量，通过 script 标签来访问（libraryTarget:'var'）。
+- this：通过 this 对象访问（libraryTarget:'this'）。
+- window：在浏览器中通过 window 对象访问（libraryTarget:'window'）。
+- UMD：在 AMD 或 CommonJS require 之后可访问（libraryTarget:'umd'）。
+
+如果设置了 library 但没有设置 libraryTarget，则 libraryTarget 默认指定为 var。
+
+
+# shimming
+## shim 预置全局变量
+使用 ProvidePlugin 后，能够在 webpack 编译的每个模块中，通过访问一个变量来获取一个 package。
+还可以使用 ProvidePlugin 暴露出某个模块中单个导出，通过配置一个“数组路径”（例如 `[module, child, ...children?]`）实现此功能。
+```
+  plugins: [
+    new webpack.ProvidePlugin({
+      //_: 'lodash',
+      join: ['lodash', 'join']
+    }),
+  ]
+```
+
+## 细粒度 shim
+一些遗留模块依赖的 this 指向的是 window 对象。
+当模块运行在 CommonJS 上下文中，也就是说此时的 this 指向的是 module.exports。在这种情况下，可以通过使用 `imports-loader` 覆盖 this 指向.
+```
+  module: {
+    rules: [
+      {
+        test: require.resolve('index.js'),
+        use: 'imports-loader?this=>window'
+      }
+    ]
+  },
+```
+
+## 全局 export 
+
+
+
+
+
+
 
 
