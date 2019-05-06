@@ -24,17 +24,13 @@ module.exports = (env) => {
         title: 'test'
       }),
     ],
-    module: {
-      rules: [
-        // {
-        //   test: require.resolve('./src/index.js'),
-        //   use: 'imports-loader?this=>window'
-        // },
-        {
-          test: require.resolve('./src/global.js'),
-          use: 'exports-loader?file,parse=helpers.parse'
-        }
-      ]
-    },
+    rules: [
+      {
+        test: /\.js$/,
+        //明确指定路径减少寻径成本
+        include: path.resolve(__dirname, 'src'),
+        loader: 'babel-loader'
+      }
+    ]
   }
 };

@@ -619,11 +619,270 @@ externals可以指定某些库/文件不打入bundle中
 ```
 
 ## 全局 export 
+假设某个 library 创建出一个全局变量，它期望 consumer(使用者) 使用这个变量。
+可以使用 `exports-loader`，将一个全局变量作为一个普通的模块来导出。
+`imports-loader`与`exports-loader`似乎不能同时使用.
 
 
+# 环境变量
+`webpack --env.NODE_ENV=local --env.production --progress`
+
+```
+const path = require('path');
+
+module.exports = env => {
+  // Use env.<YOUR VARIABLE> here:
+  console.log('NODE_ENV: ', env.NODE_ENV); // 'local'
+  console.log('Production: ', env.production); // true
+
+  return {
+    entry: './src/index.js',
+    output: {
+      filename: 'bundle.js',
+      path: path.resolve(__dirname, 'dist')
+    }
+  };
+};
+```
 
 
+# 管理依赖
+## 带表达式的 require 语句 
+`require('./template/' + name + '.ejs');`
+webpack 解析 require() 调用，然后提取出如下一些信息：
+```
+Directory: ./template
+Regular expression: /^.*\.ejs$/
+```
+生成一个 context module(上下文模块)。它包含目录下的所有模块的引用，是通过一个 request 解析出来的正则表达式，去匹配目录下所有符合的模块，然后都 require 进来。此 context module 包含一个 map 对象，会把 request 中所有模块翻译成对应的模块 id。
+
+webpack 能够支持动态地 require，但会导致所有可能用到的模块都包含在 bundle 中。
+
+## require.context 
+还可以通过 `require.context()` 函数来创建自己的 context。
+可以给这个函数传入三个参数：一个要搜索的目录，一个标记表示是否还搜索其子目录， 以及一个匹配文件的正则表达式。
+webpack 会在构建中解析代码中的 `require.context()` 。
+```
+require.context(directory, useSubdirectories = false, regExp = /^\.\//);
+```
+
+示例：
+```
+// （创建出）一个 context，其中文件来自 test 目录，request 以 `.test.js` 结尾。
+require.context('./test', false, /\.test\.js$/);
+
+// （创建出）一个 context，其中所有文件都来自父文件夹及其所有子级文件夹，request 以 `.stories.js` 结尾。
+require.context('../', true, /\.stories\.js$/);
+```
+传递给 require.context 的参数必须是字面量(literal)
+
+## context module API 
+一个 context module 会导出一个（require）函数，此函数可以接收一个参数：request。
+
+此导出函数有三个属性：resolve, keys, id。
+- resolve 是一个函数，它返回 request 被解析后得到的模块 id。
+- keys 也是一个函数，它返回一个数组，由所有可能被此 context module 处理的请求组成。
+- id 是 context module 里面所包含的模块 id. 它可能在你使用 module.hot.accept 时会用到。
+
+如果想引入一个文件夹下面的所有文件，或者引入能匹配一个正则表达式的所有文件，这个功能就会很有帮助，例如：
+```
+function importAll (r) {
+  r.keys().forEach(r);
+}
+
+importAll(require.context('../components/', true, /\.js$/));
+var cache = {};
+```
+
+```
+// 在构建时(build-time)，所有被 require 的模块都会被填充到 cache 对象中。
+function importAll (r) {
+  r.keys().forEach(key => cache[key] = r(key));
+}
+
+importAll(require.context('../components/', true, /\.js$/));
+```
 
 
+# 公共路径
+```
+import webpack from 'webpack';
+
+// 尝试使用环境变量，否则使用根路径
+const ASSET_PATH = process.env.ASSET_PATH || '/';
+
+export default {
+  output: {
+    publicPath: ASSET_PATH
+  },
+
+  plugins: [
+    // 这可以帮助我们在代码中安全地使用环境变量
+    new webpack.DefinePlugin({
+      'process.env.ASSET_PATH': JSON.stringify(ASSET_PATH)
+    })
+  ]
+};
+```
+
+webpack 暴露了一个名为 `__webpack_public_path__` 的全局变量。所以在应用程序的 entry point 中，可以直接如下设置
+`__webpack_public_path__ = process.env.ASSET_PATH;`
+
+
+# 构建性能
+## 通用环境 
+### loader 
+对最少数量的必要模块使用 loader。
+```
+module.exports = {
+  //...
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        include: path.resolve(__dirname, 'src'),
+        loader: 'babel-loader'
+      }
+    ]
+  }
+};
+```
+每个额外的 loader/plugin 都有其启动时间。尽量少使用工具。
+
+### 解析 
+以下步骤可以提高解析速度:
+- 减少 resolve.modules, resolve.extensions, resolve.mainFiles, resolve.descriptionFiles 中 items 数量，因为他们会增加文件系统调用的次数。
+- 如果你使用 symlinks（例如 npm link 或者 yarn link），可以设置 resolve.symlinks: false。
+- 如果使用自定义 resolve plugin 规则，并且没有指定 context 上下文，可以设置 resolve.cacheWithContext: false。
+
+### Dlls
+使用 DllPlugin 为更改不频繁的代码生成单独编译结果。这可以提高应用程序的编译速度，尽管它确实增加了构建过程的复杂度。
+
+### 小即是快(smaller = faster) 
+减少编译结果的整体大小，以提高构建性能。尽量保持 chunk 体积小。
+- 使用数量更少/体积更小的 library。
+- 在多页面应用程序中使用 CommonsChunkPlugin。
+- 在多页面应用程序中使用 CommonsChunkPlugin，并开启 async 模式。
+- 移除未引用代码。
+- 只编译当前正在开发的那些代码。
+
+### worker 池(worker pool) 
+thread-loader 可以将非常消耗资源的 loader 分流给一个 worker pool。
+
+不要使用太多的 worker，因为 Node.js 的 runtime 和 loader 都有启动开销。最小化 worker 和 main process(主进程) 之间的模块传输。进程间通讯(IPC, inter process communication)是非常消耗资源的。
+
+### 持久化缓存 
+使用 cache-loader 启用持久化缓存。使用 package.json 中的 "postinstall" 清除缓存目录。
+
+
+## 开发环境
+### 增量编译 
+使用 webpack 的 watch mode(监听模式)。而不使用其他工具来 watch 文件和调用 webpack 。内置的 watch mode 会记录时间戳并将此信息传递给 compilation 以使缓存失效。
+
+在某些配置环境中，watch mode 会回退到 poll mode(轮询模式)。监听许多文件会导致 CPU 大量负载。在这些情况下，可以使用 watchOptions.poll 来增加轮询的间隔。
+
+### 在内存中编译 
+下面几个工具通过在内存中（而不是写入磁盘）编译和 serve 资源来提高性能：
+- webpack-dev-server
+- webpack-hot-middleware
+- webpack-dev-middleware
+
+### stats.toJson 加速 
+webpack 4 默认使用 `stats.toJson()` 输出大量数据。除非在增量步骤中做必要的统计，否则请避免获取 stats 对象的部分内容。webpack-dev-server 在 v3.1.3 以后的版本，包含一个重要的性能修复，即最小化每个增量构建步骤中，从 stats 对象获取的数据量。
+
+### devtool 
+需要注意的是不同的 devtool 设置，会导致不同的性能差异。
+- "eval" 具有最好的性能，但并不能帮助你转译代码。
+- 如果你能接受稍差一些的 map 质量，可以使用 cheap-source-map 变体配置来提高性能
+- 使用 eval-source-map 变体配置进行增量编译。
+
+=> 在大多数情况下，最佳选择是 `cheap-module-eval-source-map`。
+
+### 避免在生产环境下才会用到的工具 
+某些 utility, plugin 和 loader 都只用于生产环境。例如，在开发环境下使用 TerserPlugin 来 minify(压缩) 和 mangle(混淆破坏) 代码是没有意义的。
+通常在开发环境下，应该排除以下这些工具：
+- TerserPlugin
+- ExtractTextPlugin
+- [hash]/[chunkhash]
+- AggressiveSplittingPlugin
+- AggressiveMergingPlugin
+- ModuleConcatenationPlugin
+
+### 最小化 entry chunk 
+webpack 只会在文件系统中生成已经更新的 chunk。
+某些配置选项（HMR, output.chunkFilename 的 `[name]/[chunkhash]`, `[hash]`）来说，除了对更新的 chunk 无效之外，对于 entry chunk 也不会生效。
+
+确保在生成 entry chunk 时，尽量减少其体积以提高性能。下面的代码块将只提取包含 runtime 的 chunk，其他 chunk 都作为其子 chunk:
+```
+new CommonsChunkPlugin({
+  name: 'manifest',
+  minChunks: Infinity
+});
+```
+
+### 避免额外的优化步骤 
+webpack 通过执行额外的算法任务，来优化输出结果的体积和加载性能。这些优化适用于小型代码库，但是在大型代码库中却非常耗费性能：
+```
+module.exports = {
+  // ...
+  optimization: {
+    removeAvailableModules: false,
+    removeEmptyChunks: false,
+    splitChunks: false,
+  }
+};
+```
+
+### 输出结果不携带路径信息 
+webpack 会在输出的 bundle 中生成路径信息。然而，在打包数千个模块的项目中，这会导致造成垃圾回收性能压力。在 options.output.pathinfo 设置中关闭：
+```
+module.exports = {
+  // ...
+  output: {
+    pathinfo: false
+  }
+};
+```
+
+### Node.js 版本 
+最新稳定版本的 Node.js 及其 ES2015 Map 和 Set 实现，出现一些 性能回退。其修复版本已经合并到 master 分支，但是有些已经发布的正式版本无法应用到这些修复内容。同时，为了充分利用增量构建速度，请尝试使用 8.9.x 版本（8.9.10 - 9.11.1 之间的版本存在性能问题）。webpack 已经开始大量使用这些 ES2015 数据结构，因此选择这些版本也将改善初始构建时间。
+
+### TypeScript loader 
+ts-loader 已经开始使用 TypeScript 内置 watch mode API，可以明显减少每次迭代时重新构建的模块数量。experimentalWatchApi 与普通 TypeScript watch mode 共享同样的逻辑，并且在开发环境使用时非常稳定。此外开启 transpileOnly，用于真正快速增量构建。
+```
+module.exports = {
+  // ...
+  test: /\.tsx?$/,
+  use: [
+    {
+      loader: 'ts-loader',
+      options: {
+        transpileOnly: true,
+        experimentalWatchApi: true,
+      },
+    },
+  ],
+};
+```
+注意：ts-loader 文档建议使用 cache-loader，但是这实际上会由于使用硬盘写入而减缓增量构建速度。
+
+### TypeScript 
+在单独的进程中使用 fork-ts-checker-webpack-plugin 进行类型检查。
+配置 loader 跳过类型检查。
+使用 ts-loader 时，设置 `happyPackMode: true / transpileOnly: true`。
+
+### Sass 
+node-sass 中有个来自 Node.js 线程池的阻塞线程的 bug。 
+当使用 thread-loader 时，需要设置 workerParallelJobs: 2。
+
+
+## 生产环境 
+不要为了很小的性能收益，牺牲应用程序的质量！
+注意，在大多数情况下，优化代码质量比构建性能更重要。
+
+### 多个 compilation(编译时) 
+在进行多个 compilation 时，以下工具可以帮助到你：
+- parallel-webpack：它允许在 worker 池中运行 compilation。
+- cache-loader：可以在多个 compilation 之间共享缓存。
 
 
